@@ -41,6 +41,21 @@ def translate_text(text):
     return translation1.text, translation2.text
 
 '''
+Convert the price from pounds to euros using an API to know the latest conversion rates, if not,
+use a simple conversion rate
+'''
+def pounds_to_euros(price):
+    response = requests.get("https://api.exchangeratesapi.io/latest?symbols=GBP")
+    data = response.json()
+
+    if data['success'] == True:
+        euro_conversion = data['rates']['EUR']
+    else:
+        euro_conversion = 1.14
+
+    return round(float(price[1:]) * euro_conversion, 2)
+
+'''
 Modify the url to go across all pages and extract all products and information from each one
 '''
 def main():
@@ -71,7 +86,10 @@ def main():
             # Translate the text into two popular languages
             translation1, translation2 = translate_text(text)
 
-            print(title, star_rating, price, picture_url, id, text, translation1, translation2)
+            # Convert the price from pounds to euros
+            price_eu = pounds_to_euros(price)
+
+            print(title, star_rating, price, price_eu, picture_url, id, text, translation1, translation2)
 
 
 if __name__ == '__main__':
