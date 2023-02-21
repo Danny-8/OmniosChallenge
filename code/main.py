@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import uuid
 from googletrans import Translator
+import openpyxl
 
 '''
 Generate a unique id by saving them in a dictionary to compare if they are already in use
@@ -53,12 +54,18 @@ def pounds_to_euros(price):
     else:
         euro_conversion = 1.14
 
-    return round(float(price[1:]) * euro_conversion, 2)
+    return str(round(float(price[1:]) * euro_conversion, 2))+'€'
 
 '''
 Modify the url to go across all pages and extract all products and information from each one
 '''
 def main():
+    # Prepare the excel to fill
+    workbook = openpyxl.Workbook()
+    sheet = workbook.active
+    columns = ['title', 'star_rating', 'price', 'price_eu', 'picture_url', 'id', 'text', 'translation1', 'translation2']
+    sheet.append(columns)
+
     for i in range(1,51):
         # Modify URL each iteration to go across all pages
         URL = "http://books.toscrape.com/catalogue/page-" + str(i) + ".html"
@@ -89,7 +96,13 @@ def main():
             # Convert the price from pounds to euros
             price_eu = pounds_to_euros(price)
 
-            print(title, star_rating, price, price_eu, picture_url, id, text, translation1, translation2)
+            # Fill the excel
+            sheet.append([title, star_rating, price, price_eu, picture_url, str(id), text, translation1, translation2])
+            #print(title, star_rating, price, price_eu, picture_url, id, text, translation1, translation2)
+
+    # Close the excel and save it
+    workbook.save("books.xlsx")
+    print("Done!")
 
 
 if __name__ == '__main__':
