@@ -2,7 +2,9 @@ import requests
 from bs4 import BeautifulSoup
 import uuid
 
-# Generate a unique id by saving them in a dictionary to compare if they are already in use
+'''
+Generate a unique id by saving them in a dictionary to compare if they are already in use
+'''
 ids_dic = []
 def unique_id():
     new_id = uuid.uuid4()
@@ -34,7 +36,18 @@ def main():
             # Generate a unique id for the book
             id = unique_id()
 
-            print(title, star_rating, price, picture_url, id)
+            # Request the text for the book, with an input like 'The text of {title} is:'
+            r = requests.post(
+                "https://api.deepai.org/api/text-generator",
+                data={'text': 'The text of ' + str(title) + ' is:'},
+                headers={'api-key': '9d719753-86bb-41d9-a1c9-59884821b0ee'}
+            )
+
+            # Taking status as a text because the account is out of API credits
+            text = r.json()['status']
+
+            print(title, star_rating, price, picture_url, id, text)
+
 
 if __name__ == '__main__':
     main()
