@@ -1,7 +1,8 @@
+import googletrans
+from googletrans import Translator
 import requests
 from bs4 import BeautifulSoup
 import uuid
-from googletrans import Translator
 import openpyxl
 
 '''
@@ -36,9 +37,9 @@ def generate_text(title):
 Translate the text into spanish and italian 
 '''
 translator = Translator()
-def translate_text(text):
-    translation1 = translator.translate(text, dest='es')
-    translation2 = translator.translate(text, dest='it')
+def translate_text(text, l1, l2):
+    translation1 = translator.translate(text, dest=l1)
+    translation2 = translator.translate(text, dest=l2)
     return translation1.text, translation2.text
 
 '''
@@ -57,14 +58,33 @@ def pounds_to_euros(price):
     return str(round(float(price[1:]) * euro_conversion, 2))+'€'
 
 '''
+Ask an input for the languages to translate, and verify it exists
+'''
+def language_input(text):
+    l = input(f'Enter {text} language to translate: ')
+    
+    if l not in googletrans.LANGUAGES.keys():
+        print('Language/Abbreviation not found. \n')
+        return language_input(text)
+    print('The selected language is: ', googletrans.LANGUAGES[l], '\n')
+    return l
+
+'''
 Modify the url to go across all pages and extract all products and information from each one
 '''
 def main():
+    # Ask the two languages to translate the text
+    lang1 = language_input('First')
+    lang2 = language_input('Second')
+
     # Prepare the excel to fill
     workbook = openpyxl.Workbook()
     sheet = workbook.active
     columns = ['title', 'star_rating', 'price', 'price_eu', 'picture_url', 'id', 'text', 'translation1', 'translation2']
     sheet.append(columns)
+    
+    j = 1
+    print ('Starting Process...')
 
     for i in range(1,51):
         # Modify URL each iteration to go across all pages
@@ -91,13 +111,15 @@ def main():
             text = generate_text(title)
 
             # Translate the text into two popular languages
-            translation1, translation2 = translate_text(text)
+            translation1, translation2 = translate_text(text, lang1, lang2)
 
             # Convert the price from pounds to euros
             price_eu = pounds_to_euros(price)
 
             # Fill the excel
             sheet.append([title, star_rating, price, price_eu, picture_url, str(id), text, translation1, translation2])
+            print('(', j, '/', len(products)*50, ')')
+            j+=1
             #print(title, star_rating, price, price_eu, picture_url, id, text, translation1, translation2)
 
     # Close the excel and save it
