@@ -4,18 +4,7 @@ import requests
 from bs4 import BeautifulSoup
 import uuid
 import openpyxl
-
-'''
-Generate a unique id by saving them in a dictionary to compare if they are already in use
-'''
-ids_dic = []
-def unique_id():
-    new_id = uuid.uuid4()
-    if new_id in ids_dic:
-        return unique_id()
-    else:
-        ids_dic.append(new_id)
-        return new_id
+from classes import UniqueIDGenerator
 
 '''
 Generate a unique text for the book using a text-generator API.
@@ -73,7 +62,7 @@ def language_input(text):
 Modify the url to go across all pages and extract all products and information from each one
 '''
 def main():
-    # Ask the two languages to translate the text
+    # Ask for the two languages to translate the text
     lang1 = language_input('First')
     lang2 = language_input('Second')
 
@@ -83,6 +72,9 @@ def main():
     columns = ['title', 'star_rating', 'price', 'price_eu', 'picture_url', 'id', 'text', 'translation1', 'translation2']
     sheet.append(columns)
     
+    # Start the class UniqueIDGenerator
+    generator = UniqueIDGenerator()
+
     j = 1
     print ('Starting Process...')
 
@@ -105,7 +97,7 @@ def main():
             picture_url = p.find('img')['src']
 
             # Generate a unique id for the book
-            id = unique_id()
+            id = generator.unique_id()
 
             # Generate the text for the book using an API
             text = generate_text(title)
@@ -120,10 +112,9 @@ def main():
             sheet.append([title, star_rating, price, price_eu, picture_url, str(id), text, translation1, translation2])
             print('(', j, '/', len(products)*50, ')')
             j+=1
-            #print(title, star_rating, price, price_eu, picture_url, id, text, translation1, translation2)
 
     # Close the excel and save it
-    workbook.save("books.xlsx")
+    workbook.save("output/books.xlsx")
     print("Done!")
 
 
